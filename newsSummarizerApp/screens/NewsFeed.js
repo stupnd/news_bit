@@ -1,16 +1,25 @@
-// screens/NewsFeed.js
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, FlatList, Text, ActivityIndicator } from 'react-native';
-import { useNavigation } from '@react-navigation/native'; // Make sure this import is correct
+import { 
+  View, 
+  StyleSheet, 
+  FlatList, 
+  ActivityIndicator, 
+  SafeAreaView,
+  RefreshControl,
+  Animated
+} from 'react-native';
 import NewsCard from '../components/NewsCard';
 import { fetchNews } from '../services/newsService';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useNavigation } from '@react-navigation/native';
 
 const NewsFeed = ({ route }) => {
-  const navigation = useNavigation(); // Correctly using the hook
-  const category = route.params && route.params.category ? route.params.category : 'All News';
+  const navigation = useNavigation();
+  const category = route.params?.category || 'All News';
   const [newsData, setNewsData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const scrollY = new Animated.Value(0);
 
   const loadNews = useCallback(async () => {
     try {
@@ -34,58 +43,77 @@ const NewsFeed = ({ route }) => {
     await loadNews();
   };
 
+  const headerOpacity = scrollY.interpolate({
+    inputRange: [0, 100],
+    outputRange: [1, 0],
+    extrapolate: 'clamp'
+  });
+
   if (loading && !refreshing) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#333" />
+        <ActivityIndicator size="large" color="#0A84FF" />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>{category}</Text>
-      <FlatList
-        data={newsData}
-        renderItem={({ item }) => (
-          <NewsCard
-            title={item.title}
-            source={item.source?.name || 'Unknown'}
-            summary={item.description || 'No description available'}
-            image={item.urlToImage}
-            onPress={() => {
-              // Navigate to ArticleDetail; navigation is defined via the hook
-              navigation.navigate('ArticleDetail', { article: item });
-            }}
-          />
-        )}
-        keyExtractor={(item, index) => index.toString()}
-        contentContainerStyle={styles.feedContainer}
-        refreshing={refreshing}
-        onRefresh={onRefresh}
-      />
-    </View>
+    <LinearGradient
+      colors={['#f8f9fa', '#ffffff']}
+      style={styles.gradientContainer}
+    >
+      <SafeAreaView style={styles.safeContainer}>
+        <Animated.FlatList
+          data={newsData}
+          renderItem={({ item, index }) => (
+            <NewsCard
+              item={item}
+              index={index}
+              onPress={() => navigation.navigate('ArticleDetail', { article: item })}
+            />
+          )}
+          keyExtractor={(item, index) => index.toString()}
+          contentContainerStyle={styles.feedContainer}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor="#0A84FF"
+              colors={['#0A84FF']}
+            />
+          }
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+          scrollEventThrottle={16}
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+            { useNativeDriver: true }
+          )}
+          showsVerticalScrollIndicator={false}
+        />
+      </SafeAreaView>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  gradientContainer: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
-  header: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    padding: 15,
-    backgroundColor: '#fff',
+  safeContainer: {
+    flex: 1,
   },
   feedContainer: {
-    paddingVertical: 10,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+  },
+  separator: {
+    height: 16,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#FFFFFF',
   },
 });
 

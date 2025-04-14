@@ -1,57 +1,141 @@
-// components/NewsCard.js
 import React from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { 
+  View, 
+  Text, 
+  Image, 
+  TouchableOpacity, 
+  StyleSheet, 
+  Animated
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
-const NewsCard = ({ title, source, summary, image, onPress }) => {
+const NewsCard = ({ item, onPress }) => {
+  const scaleValue = new Animated.Value(1);
+  
+  const handlePressIn = () => {
+    Animated.spring(scaleValue, {
+      toValue: 0.98,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scaleValue, {
+      toValue: 1,
+      friction: 3,
+      tension: 40,
+      useNativeDriver: true,
+    }).start();
+  };
+
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress}>
-      {image && <Image source={{ uri: image }} style={styles.thumbnail} />}
-      <View style={styles.textContainer}>
-        <Text style={styles.title}>{title}</Text>
-        <Text style={styles.source}>{source}</Text>
-        <Text style={styles.summary} numberOfLines={3}>
-          {summary}
-        </Text>
-      </View>
-    </TouchableOpacity>
+    <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
+      <TouchableOpacity 
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        activeOpacity={0.9}
+      >
+        <View style={styles.cardContainer}>
+          {item.urlToImage && (
+            <Image 
+              source={{ uri: item.urlToImage }} 
+              style={styles.cardImage}
+              resizeMode="cover"
+            />
+          )}
+          {/* Text Container Below the Image */}
+          <View style={styles.textContainer}>
+            <View style={styles.sourceContainer}>
+              <Text style={styles.sourceText}>{item.source?.name || 'Unknown'}</Text>
+              <View style={styles.timeContainer}>
+                <Ionicons name="time-outline" size={14} color="#2c3e50" />
+                <Text style={styles.timeText}>
+                  {new Date(item.publishedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </Text>
+              </View>
+            </View>
+            <Text style={styles.title} numberOfLines={3}>{item.title}</Text>
+            <Text style={styles.summary} numberOfLines={2}>
+              {item.description || 'No description available'}
+            </Text>
+            <View style={styles.footer}>
+              <Text style={styles.date}>
+                {new Date(item.publishedAt).toLocaleDateString()}
+              </Text>
+              <Ionicons name="chevron-forward" size={18} color="#2c3e50" />
+            </View>
+          </View>
+        </View>
+      </TouchableOpacity>
+    </Animated.View>
   );
 };
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    marginVertical: 10,
-    marginHorizontal: 15,
+  cardContainer: {
+    borderRadius: 16,
     overflow: 'hidden',
-    // A subtle shadow for iOS
+    backgroundColor: '#FFFFFF',
     shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-    // Elevation for Android shadow
     elevation: 3,
+    marginBottom: 16, // Space between cards
   },
-  thumbnail: {
+  cardImage: {
     width: '100%',
-    height: 200,
+    height: 180,
   },
   textContainer: {
-    padding: 15,
+    padding: 16,
+    backgroundColor: '#fff', // Background for text area for readability
+  },
+  sourceContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  sourceText: {
+    color: '#2c3e50',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  timeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  timeText: {
+    color: '#2c3e50',
+    fontSize: 12,
+    marginLeft: 4,
+    fontWeight: '500',
   },
   title: {
+    color: '#2c3e50',
     fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  source: {
-    fontSize: 14,
-    color: '#777',
-    marginBottom: 10,
+    fontWeight: '700',
+    lineHeight: 24,
+    marginBottom: 8,
   },
   summary: {
-    fontSize: 16,
-    color: '#333',
+    color: '#2c3e50',
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 12,
+    opacity: 0.9,
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  date: {
+    color: '#2c3e50',
+    fontSize: 12,
+    opacity: 0.8,
   },
 });
 

@@ -1,4 +1,3 @@
-// navigation/NewsStack.js
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import NewsFeed from '../screens/NewsFeed';
@@ -6,20 +5,26 @@ import ArticleDetail from '../screens/ArticleDetail';
 
 const Stack = createStackNavigator();
 
-const NewsStack = ({ route }) => {
-  // The initial params (such as category) are passed from the drawer.
+const NewsStack = () => {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false // This hides the header in the stack navigator
+      }}
+    >
       <Stack.Screen 
         name="NewsFeed" 
-        component={NewsFeed} 
-        initialParams={route.params} 
-        options={{ headerShown: false }} // Our NewsFeed already includes a header title.
+        component={NewsFeed}
       />
-      <Stack.Screen 
-        name="ArticleDetail" 
-        component={ArticleDetail} 
-        options={{ title: 'Article Detail' }} 
+      <Stack.Screen
+        name="ArticleDetail"
+        component={ArticleDetail}
+        options={{
+          headerShown: true,
+          headerTitle: 'Article Details',
+          headerBackTitle: '',
+          headerBackTitleVisible: false,
+        }}
       />
     </Stack.Navigator>
   );
